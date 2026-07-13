@@ -41,6 +41,6 @@ function fallbackLoad(){
   });
 }
 </script>
-<script src="https://gitee.com/yuxiaotian123/kanban-public/raw/master/data.js" onload="renderKanban()" onerror="fallbackLoad()"></script>
+<script>var _cb="_"+Date.now();var s=document.createElement("script");s.src="https://gitee.com/yuxiaotian123/kanban-public/raw/master/data.js?_="+_cb;s.onload=renderKanban;s.onerror=fallbackLoad;document.head.appendChild(s);</script></script>
 </body>
 </html>
