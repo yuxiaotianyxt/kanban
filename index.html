@@ -19,28 +19,46 @@ function decodeBase64Utf8(b64){
   for(var i=0;i<binary.length;i++){bytes[i]=binary.charCodeAt(i);}
   return new TextDecoder('utf-8').decode(bytes);
 }
-function renderKanban(){
-  if(window.__d){
-    var html=decodeBase64Utf8(window.__d);
-    document.open();
-    document.write(html);
-    document.close();
-  }
+function renderKanban(html){
+  document.open();
+  document.write(html);
+  document.close();
 }
-function fallbackLoad(){
-  fetch('https://gitee.com/api/v5/repos/yuxiaotian123/kanban-public/contents/index.html?ref=master')
+function showError(msg){
+  document.body.innerHTML='<div style="text-align:center"><p style="color:#ef4444;font-size:16px;margin-bottom:10px">加载失败</p><p style="color:#666;font-size:14px">'+msg+'</p><p style="color:#666;font-size:14px;margin-top:15px">请刷新重试</p></div>';
+}
+// Primary: Gitee API with no-cache (bypasses 302 redirect CDN caching)
+fetch('https://gitee.com/api/v5/repos/yuxiaotian123/kanban-public/contents/data.js?ref=master&_='+Date.now(),{cache:'no-cache'})
   .then(function(r){return r.json()})
   .then(function(d){
-    var html=decodeBase64Utf8(d.content);
-    document.open();
-    document.write(html);
-    document.close();
+    if(d&&d.content){
+      var jsCode=decodeBase64Utf8(d.content.replace(/\n/g,''));
+      var b64Match=jsCode.match(/window\.__d="(.+)"/);
+      if(b64Match){
+        var html=decodeBase64Utf8(b64Match[1]);
+        renderKanban(html);
+      }else{
+        throw new Error('Invalid data.js format');
+      }
+    }else{
+      throw new Error('No content');
+    }
   })
   .catch(function(e){
-    document.body.innerHTML='<div style="text-align:center"><p style="color:#ef4444;font-size:16px;margin-bottom:10px">加载失败</p><p style="color:#666;font-size:14px">'+e.message+'</p><p style="color:#666;font-size:14px;margin-top:15px">请刷新重试</p></div>';
+    // Fallback: script tag with cache-busting
+    var s=document.createElement('script');
+    s.src='https://gitee.com/yuxiaotian123/kanban-public/raw/master/data.js?v='+Date.now();
+    s.onload=function(){
+      if(window.__d){
+        var html=decodeBase64Utf8(window.__d);
+        renderKanban(html);
+      }else{
+        showError('data.js loaded but empty');
+      }
+    };
+    s.onerror=function(){showError(e.message||'Network error');};
+    document.head.appendChild(s);
   });
-}
 </script>
-<script>var _cb="_"+Date.now();var s=document.createElement("script");s.src="https://gitee.com/yuxiaotian123/kanban-public/raw/master/data.js?_="+_cb;s.onload=renderKanban;s.onerror=fallbackLoad;document.head.appendChild(s);</script></script>
 </body>
 </html>
