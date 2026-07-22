@@ -1694,7 +1694,19 @@ dmMonths.forEach(mk=>{
 if(!D.DM || !D.DM[mk]){var _bd=document.getElementById('proMonBody');if(_bd)_bd.innerHTML='<div class="no-data" style="padding:30px;text-align:center;color:#64748b;">数据加载中...</div>';return;}
 
 var daily = D.DM[mk].daily;
-if(!daily) return;
+var typesData = (D.DM[mk].types && D.DM[mk].types[bizType]) ? D.DM[mk].types[bizType] : null;
+
+// If no daily data but types data exists, use v26 as cumulative
+if(!daily){
+if(typesData){
+Object.keys(typesData).forEach(function(prov){
+if(prov==='总计'||prov==='合计')return;
+if(!provData[prov])provData[prov]={daily:0,cumul:0};
+provData[prov].cumul+=(typesData[prov].v26||0);
+});
+}
+return;
+}
 
 var targetDay;
 if(selDay!=null){
@@ -1704,7 +1716,17 @@ var maxDay=0;
 Object.keys(daily).forEach(function(dk){var dn=parseInt(dk);if(dn>maxDay)maxDay=dn;});
 targetDay=maxDay;
 }
-if(targetDay===0) return;
+if(targetDay===0){
+// No valid day - fall back to types v26
+if(typesData){
+Object.keys(typesData).forEach(function(prov){
+if(prov==='总计'||prov==='合计')return;
+if(!provData[prov])provData[prov]={daily:0,cumul:0};
+provData[prov].cumul+=(typesData[prov].v26||0);
+});
+}
+return;
+}
 var targetDayStr=String(targetDay);
 
 var dayData=(D.DM[mk].dailySingle && D.DM[mk].dailySingle[targetDayStr])?D.DM[mk].dailySingle[targetDayStr]:null;
@@ -1730,21 +1752,20 @@ if(prov==='总计')return;
 if(!provData[prov])provData[prov]={daily:0,cumul:0};
 provData[prov].cumul=cumulData[prov];
 });
-}else{
-Object.keys(typeData).forEach(function(prov){
-if(prov==='合计')return;
+}else if(typesData){
+// Fall back to types v26 when daily data for this bizType doesn't exist
+Object.keys(typesData).forEach(function(prov){
+if(prov==='总计'||prov==='合计')return;
 if(!provData[prov])provData[prov]={daily:0,cumul:0};
-provData[prov].cumul+=(typeData[prov].v26||0);
+provData[prov].cumul+=(typesData[prov].v26||0);
 });
 }
 }else{
-var types=D.DM[mk].types;
-if(!types||!types[bizType])return;
-var typeData=types[bizType];
-Object.keys(typeData).forEach(function(prov){
-if(prov==='合计')return;
+if(!typesData)return;
+Object.keys(typesData).forEach(function(prov){
+if(prov==='总计'||prov==='合计')return;
 if(!provData[prov])provData[prov]={daily:0,cumul:0};
-provData[prov].cumul+=(typeData[prov].v26||0);
+provData[prov].cumul+=(typesData[prov].v26||0);
 });
 }
 });
