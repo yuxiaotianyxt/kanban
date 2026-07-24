@@ -1086,7 +1086,7 @@ var djy=D.daily_jy_data||{};
 var hasDaily=false;
 for(var p in djy){if(djy[p]&&djy[p][sel.dateStr]){hasDaily=true;break;}}
 if(hasDaily){
-var drows=provinceList.map(function(prov){
+var drows=_provList.map(function(prov){
 var dd=djy[prov]&&djy[prov][sel.dateStr]?djy[prov][sel.dateStr]:{huafei:0,ziyou:0,sanfang:0,prof:0};
 var total=dd.huafei+dd.ziyou+dd.sanfang+(dd.prof||0);
 var yp=sel.dateStr.split('-');var prevYr=(parseInt(yp[0])-1)+'-'+yp[1]+'-'+yp[2];
@@ -2016,12 +2016,13 @@ container.innerHTML='<div style="overflow-x:auto">'+svg+'</div>';
 function renderProvGrowth(){
 const container=document.getElementById('provGrowthBody');
 if(!container)return;
+var _provList = selectedProvince ? [selectedProvince] : provinceList;
 const sel=getSelectedData();
 const months=sel.months;
 if(months.length===0){container.innerHTML='<div class="no-data">请选择月份</div>';return;}
 const prevMonths=getPrevYearMonths(months);
 if(prevMonths.length===0){container.innerHTML='<div class="no-data">无去年同期数据</div>';return;}
-const rows=provinceList.map(prov=>{
+const rows=_provList.map(prov=>{
 const pd=D.jy_data[prov];if(!pd)return{prov,growth:null,note:''};
 let curr=0,prev=0;
 let ch={hf:0,zy:0,sf:0,prof:0},pv={hf:0,zy:0,sf:0,prof:0};
@@ -2041,8 +2042,6 @@ var note=notes.join('、');
 return{prov,curr,prev,growth,note:note};
 }).filter(r=>r.growth!==null);
 rows.sort((a,b)=>b.growth-a.growth);
-const top10=rows.slice(0,10);
-const bottom10=rows.slice(-10).reverse();
 const maxAbs=Math.max(...rows.map(r=>Math.abs(r.growth)),1);
 function renderBar(item,label,color){
 const w=Math.abs(item.growth)/maxAbs*85;
@@ -2060,7 +2059,17 @@ return '<div style="display:grid;grid-template-columns:48px 180px 60px 64px 1fr;
 '<span style="font-size:10px;color:#64748b;line-height:1.3">'+(item.note||'')+'</span>'+
 '</div>';
 }
-let html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">';
+var html;
+if(selectedProvince && rows.length<=1){
+if(rows.length===0){container.innerHTML='<div class="no-data">无数据</div>';return;}
+var sr=rows[0];var sc=sr.growth>0?'#f87171':'#4ade80';
+html='<div style="padding:8px 0"><div style="font-size:14px;color:#cbd5e1;font-weight:600;margin-bottom:10px">'+sr.prov+' 同比增速</div>';
+html+=renderBar(sr,'',sc);
+html+='<div style="margin-top:8px;font-size:11px;color:#64748b">当前: '+Math.round(sr.curr).toLocaleString()+'万元 / 去年同期: '+Math.round(sr.prev).toLocaleString()+'万元</div></div>';
+}else{
+const top10=rows.slice(0,10);
+const bottom10=rows.slice(-10).reverse();
+html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">';
 html+='<div><div style="font-size:13px;color:#f87171;font-weight:600;margin-bottom:8px">增速TOP10</div>';
 top10.forEach(r=>html+=renderBar(r,'',r.growth>0?'#f87171':'#4ade80'));
 html+='</div>';
@@ -2068,6 +2077,7 @@ html+='<div><div style="font-size:13px;color:#4ade80;font-weight:600;margin-bott
 bottom10.forEach(r=>html+=renderBar(r,'',r.growth>0?'#f87171':'#4ade80'));
 html+='</div>';
 html+='</div>';
+}
 container.innerHTML=html;
 }
 
@@ -2227,6 +2237,7 @@ container.innerHTML=html;
 function renderStarLevel(){
 const container=document.getElementById('starLevelBody');
 if(!container)return;
+if(selectedProvince){container.innerHTML='<div class="no-data">星级用户结构为全国数据，分省筛选时不可用</div>';return;}
 const sel=getSelectedData();
 if(sel.dayMode){container.innerHTML='<div class="no-data">星级用户结构仅月维度可用</div>';return;}
 const months=sel.months;
