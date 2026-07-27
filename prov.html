@@ -40,12 +40,12 @@
 <button class="action-btn" id="btnClear">清空</button>
 
 </div>
-</div>
 <div style="display:inline-flex;align-items:center;gap:4px;margin-left:8px">
 <span style="color:#475569;font-size:13px">|</span>
 <select id="provFilter" onchange="onProvFilterChange()" style="background:rgba(30,41,59,0.5);color:#7dd3fc;border:1px solid rgba(56,189,248,0.15);border-radius:8px;padding:6px 12px;font-size:13px;font-family:inherit;color-scheme:dark">
 <option value="">全国</option>
 </select>
+</div>
 </div>
 <div class="month-grid" id="monthGrid" style="display:none"></div>
 <div class="selected-display" id="selectedDisplay" style="display:none"></div>
@@ -241,7 +241,7 @@ return total;
 let selectedMonths = new Set(['2026-05']);
 let viewMode = 'day';
 let selectedDate = null;
-const dailyDates = D.daily_data ? Object.keys(D.daily_data).sort() : [];
+let dailyDates = D.daily_data ? Object.keys(D.daily_data).sort() : [];
 const dailyCatKeys = ['话费','非话费自有','权益','帮扶','央企','心翼','集团评审','专业公司','尊茂','常规实物','常规虚拟'];
 const dailyProfCats = ['专业公司'];
 const dailySanfangCats = ['权益','帮扶','央企','心翼','集团评审','尊茂','常规实物','常规虚拟'];
