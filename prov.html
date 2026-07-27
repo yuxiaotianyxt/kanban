@@ -1298,8 +1298,7 @@ renderAlert();
 }
 
 function renderAlert(){
-if(selectedProvince){var _sec=document.getElementById('alertSection');if(_sec)_sec.style.display='none';return;}
-var _sec2=document.getElementById('alertSection');if(_sec2)_sec2.style.display='';
+var _sec=document.getElementById('alertSection');if(selectedProvince){if(_sec)_sec.style.display='none';return;}if(_sec)_sec.style.display='';
 
 
 const sel = getSelectedData();
