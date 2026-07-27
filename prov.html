@@ -86,11 +86,6 @@
 </div>
 </div>
 
-<div class="table-section month-only" id="provGrowthSection">
-<div class="table-title">省份增速排名 <span class="badge">同比增速TOP10 / BOTTOM10</span></div>
-<div id="provGrowthBody"></div>
-</div>
-
 <div class="table-section month-only">
 <div class="table-title">星级用户结构 <span class="badge">1-7星兑换用户数分布</span></div>
 <div id="starLevelBody"></div>
@@ -2039,65 +2034,7 @@ svg+='</svg>';
 container.innerHTML='<div style="overflow-x:auto">'+svg+'</div>';
 }
 
-function renderProvGrowth(){
-var _sec=document.getElementById('provGrowthSection');if(_sec)_sec.style.display=selectedProvince?'none':'';
-if(selectedProvince)return;
-const container=document.getElementById('provGrowthBody');
-if(!container)return;
-const sel=getSelectedData();
-const months=sel.months;
-if(months.length===0){container.innerHTML='<div class="no-data">请选择月份</div>';return;}
-const prevMonths=getPrevYearMonths(months);
-if(prevMonths.length===0){container.innerHTML='<div class="no-data">无去年同期数据</div>';return;}
-const rows=getProvList().map(prov=>{
-const pd=D.jy_data[prov];if(!pd)return{prov,growth:null,note:''};
-let curr=0,prev=0;
-let ch={hf:0,zy:0,sf:0,prof:0},pv={hf:0,zy:0,sf:0,prof:0};
-months.forEach(m=>{if(pd[m]){curr+=pd[m].huafei+pd[m].ziyou+pd[m].sanfang;ch.hf+=pd[m].huafei;ch.zy+=pd[m].ziyou;ch.sf+=pd[m].sanfang;}});
-let cp=getProfTotalForProvince(prov,months);curr+=cp;ch.prof=cp;
-prevMonths.forEach((m,pi)=>{var ratio=getMonthDayRatio(months[pi])*getPrevYearRatioCorrection(months[pi],m);if(pd[m]){prev+=(pd[m].huafei+pd[m].ziyou+pd[m].sanfang)*ratio;pv.hf+=pd[m].huafei*ratio;pv.zy+=pd[m].ziyou*ratio;pv.sf+=pd[m].sanfang*ratio;}});
-let pp=getProfTotalForProvince(prov,prevMonths);var profRatio=months.reduce((t,mm,i)=>t+getMonthDayRatio(mm)*getPrevYearRatioCorrection(mm,prevMonths[i]),0)/months.length;pp=pp*profRatio;prev+=pp;pv.prof=pp;
-const growth=prev>0?((curr-prev)/prev*100):null;
-// 生成分项说明
-var notes=[];
-[{n:'话费',c:ch.hf,p:pv.hf},{n:'非话费自有',c:ch.zy,p:pv.zy},{n:'第三方',c:ch.sf,p:pv.sf},{n:'专业公司',c:ch.prof,p:pv.prof}].forEach(function(it){
-if(it.c<=0)return;
-if(it.p<=0.01&&it.c>1){notes.push(it.n+'新增');}
-else if(it.p>0){var pct=(it.c-it.p)/it.p*100;if(Math.abs(pct)>=30)notes.push(it.n+(pct>0?'+':'')+pct.toFixed(0)+'%');}
-});
-var note=notes.join('、');
-return{prov,curr,prev,growth,note:note};
-}).filter(r=>r.growth!==null);
-rows.sort((a,b)=>b.growth-a.growth);
-const top10=rows.slice(0,10);
-const bottom10=rows.slice(-10).reverse();
-const maxAbs=Math.max(...rows.map(r=>Math.abs(r.growth)),1);
-function renderBar(item,label,color){
-const w=Math.abs(item.growth)/maxAbs*85;
-const arrow=item.growth>0?'&#9650;':'&#9660;';
-return '<div style="display:grid;grid-template-columns:48px 180px 60px 64px 1fr;align-items:center;gap:6px;margin-bottom:5px;padding:3px 0;min-width:0">'+
-'<span style="font-size:12px;color:#cbd5e1;text-align:right">'+item.prov+'</span>'+
-'<div style="height:16px;background:rgba(30,41,59,0.5);border-radius:3px;position:relative;overflow:hidden">'+
-(item.growth>0?
-'<div style="height:100%;border-radius:3px;background:'+color+';width:'+w.toFixed(1)+'px;margin-left:90px"></div>':
-'<div style="height:100%;border-radius:3px;background:'+color+';width:'+w.toFixed(1)+'px;margin-left:'+(90-w).toFixed(1)+'px"></div>')+
-'<div style="position:absolute;left:88px;width:2px;height:100%;background:rgba(148,163,184,0.3)"></div>'+
-'</div>'+
-'<span style="font-size:12px;font-weight:600;color:'+color+'">'+arrow+' '+Math.abs(item.growth).toFixed(1)+'%</span>'+
-'<span style="font-size:11px;color:#64748b">'+Math.round(item.curr).toLocaleString()+'万</span>'+
-'<span style="font-size:10px;color:#64748b;line-height:1.3">'+(item.note||'')+'</span>'+
-'</div>';
-}
-let html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">';
-html+='<div><div style="font-size:13px;color:#f87171;font-weight:600;margin-bottom:8px">增速TOP10</div>';
-top10.forEach(r=>html+=renderBar(r,'',r.growth>0?'#f87171':'#4ade80'));
-html+='</div>';
-html+='<div><div style="font-size:13px;color:#4ade80;font-weight:600;margin-bottom:8px">增速BOTTOM10</div>';
-bottom10.forEach(r=>html+=renderBar(r,'',r.growth>0?'#f87171':'#4ade80'));
-html+='</div>';
-html+='</div>';
-container.innerHTML=html;
-}
+
 
 function renderConcentration(){
 const container=document.getElementById('concentrationBody');
@@ -2790,7 +2727,7 @@ renderBizStruct();
 requestAnimationFrame(function(){
 renderDailyTrend();
 renderProvince();
-renderProvGrowth();
+
 renderStarLevel();
 renderAlert();
 });
