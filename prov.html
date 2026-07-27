@@ -2206,7 +2206,6 @@ var starLabels=['1星','2星','3星','4星','5星','6星','7星'];
 var colors=['#64748b','#94a3b8','#38bdf8','#818cf8','#2dd4bf','#fbbf24','#f97316'];
 
 if(selectedProvince&&window.province_star_data&&province_star_data[selectedProvince]){
-// Show province-level star customer structure
 var provData=province_star_data[selectedProvince];
 var data=starLabels.map(function(label,i){
 var val=0;
@@ -2218,7 +2217,73 @@ if(total===0){
 container.innerHTML='<div class="no-data">该省份所选月份暂无星级客户数据</div>';
 return;
 }
-container.innerHTML=renderStarChart(data,total,months.length,null,0,months);
+// Bar chart
+var html=renderStarChart(data,total,months.length,null,0,months);
+// Province ranking
+var allProvTotals=Object.keys(province_star_data).filter(function(p){return p!=='全国';}).map(function(p){
+var t=0;
+starLabels.forEach(function(sl){months.forEach(function(m){t+=(province_star_data[p][sl]&&province_star_data[p][sl][m])||0;});});
+return{prov:p,total:t};
+}).sort(function(a,b){return b.total-a.total;});
+var rank=allProvTotals.findIndex(function(x){return x.prov===selectedProvince;})+1;
+var nationalTotal=allProvTotals.reduce(function(s,x){return s+x.total;},0);
+var share=nationalTotal>0?(total/nationalTotal*100).toFixed(2):'0';
+html+='<div style="margin-top:6px;font-size:11px;color:#64748b">'+selectedProvince+'星级客户数：'+total.toLocaleString()+'人 · 全国排名第'+rank+'/'+allProvTotals.length+' · 占全国'+share+'%</div>';
+// Detailed breakdown table
+var allMonths=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
+var selMonths=months;
+html+='<div style="margin-top:10px;overflow-x:auto"><table style="width:100%;min-width:500px;border-collapse:collapse;font-size:12px">';
+html+='<thead><tr style="border-bottom:1px solid rgba(56,189,248,0.2)">';
+html+='<th style="text-align:left;padding:6px 10px;color:#94a3b8;font-weight:400">星级</th>';
+selMonths.forEach(function(m){html+='<th style="text-align:right;padding:6px 10px;color:#94a3b8;font-weight:400">'+m+'</th>';});
+html+='<th style="text-align:right;padding:6px 10px;color:#94a3b8;font-weight:400">合计</th>';
+html+='<th style="text-align:right;padding:6px 10px;color:#94a3b8;font-weight:400">占比</th>';
+html+='</tr></thead><tbody>';
+data.forEach(function(d,i){
+html+='<tr style="border-bottom:1px solid rgba(56,189,248,0.06)">';
+html+='<td style="padding:6px 10px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:'+d.color+';margin-right:6px;vertical-align:middle"></span>'+d.label+'</td>';
+selMonths.forEach(function(m){
+var v=(provData[d.label]&&provData[d.label][m])||0;
+html+='<td style="text-align:right;padding:6px 10px;color:#e2e8f0">'+v.toLocaleString()+'</td>';
+});
+html+='<td style="text-align:right;padding:6px 10px;color:#e2e8f0;font-weight:600">'+d.val.toLocaleString()+'</td>';
+var pct=total>0?(d.val/total*100).toFixed(1):'0';
+html+='<td style="text-align:right;padding:6px 10px;color:#94a3b8">'+pct+'%</td>';
+html+='</tr>';
+});
+// Total row
+html+='<tr style="border-top:1px solid rgba(56,189,248,0.2)">';
+html+='<td style="padding:6px 10px;color:#94a3b8;font-weight:600">合计</td>';
+selMonths.forEach(function(m){
+var mt=0;
+starLabels.forEach(function(sl){mt+=(provData[sl]&&provData[sl][m])||0;});
+html+='<td style="text-align:right;padding:6px 10px;color:#94a3b8;font-weight:600">'+mt.toLocaleString()+'</td>';
+});
+html+='<td style="text-align:right;padding:6px 10px;color:#94a3b8;font-weight:600">'+total.toLocaleString()+'</td>';
+html+='<td style="text-align:right;padding:6px 10px;color:#94a3b8">100%</td>';
+html+='</tr>';
+html+='</tbody></table></div>';
+// Month-over-month trend
+if(selMonths.length>=2){
+var monthTotals=selMonths.map(function(m){
+var t=0;
+starLabels.forEach(function(sl){t+=(provData[sl]&&provData[sl][m])||0;});
+return t;
+});
+html+='<div style="margin-top:8px;font-size:11px;color:#64748b">环比趋势：';
+for(var mi=1;mi<monthTotals.length;mi++){
+var prev=monthTotals[mi-1];
+var curr=monthTotals[mi];
+if(prev>0){
+var chg=((curr-prev)/prev*100).toFixed(1);
+var arrow=parseFloat(chg)>=0?'<span style="color:#f97316">+'+chg+'%</span>':'<span style="color:#2dd4bf">'+chg+'%</span>';
+html+=selMonths[mi-1].slice(5)+'月至'+selMonths[mi].slice(5)+'月 '+arrow;
+if(mi<monthTotals.length-1)html+=' · ';
+}
+}
+html+='</div>';
+}
+container.innerHTML=html;
 return;
 }
 
