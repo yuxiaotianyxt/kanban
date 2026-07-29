@@ -61,6 +61,25 @@
 </div>
 
 <div class="table-section">
+<div class="table-title">分省兑换额排行 <span class="badge" id="rankBadge">点击表头排序 · 点击省份行展开渠道明细</span></div>
+<div class="table-scroll">
+<table>
+<thead><tr>
+<th>#</th>
+<th>省份</th>
+<th class="sortable" data-sort="total">总兑换额 <span class="sort-icon"></span></th>
+<th class="sortable" data-sort="huafei">话费 <span class="sort-icon"></span></th>
+<th class="sortable" data-sort="ziyou">非话费自有 <span class="sort-icon"></span></th>
+<th class="sortable" data-sort="sanfang">第三方 <span class="sort-icon"></span></th>
+<th class="sortable" data-sort="prof">专业公司 <span class="sort-icon"></span></th>
+<th class="sortable" data-sort="yoy">同/环比 <span class="sort-icon"></span></th>
+</tr></thead>
+<tbody id="provinceBody"></tbody>
+</table>
+</div>
+</div>
+
+<div class="table-section">
 <div class="table-title">分日波动 <span class="badge">日度兑换额趋势 · 异常日期自动标注</span></div>
 <div id="dailyTrendBody"></div>
 </div>
@@ -1077,7 +1096,14 @@ var pcT=ddPC?ddPC.huafei+ddPC.ziyou+ddPC.sanfang+(ddPC.prof||0):0;
 var chainV=(ddPC&&pcT>0)?((total-pcT)/pcT*100):null;
 return{prov:prov,total:total,huafei:dd.huafei,ziyou:dd.ziyou,sanfang:dd.sanfang,prof:dd.prof||0,yoy:yoyV,yoyVal:yoyV,chain:chainV,chainVal:chainV};
 });
-drows.sort(function(a,b){return b.total-a.total;});
+drows.sort(function(a,b){
+var va=a[sortKey], vb=b[sortKey];
+if(sortKey==='prov'){va=a.prov;vb=b.prov;}
+if(typeof va==='string') return sortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+if(va==null) va=-Infinity;
+if(vb==null) vb=-Infinity;
+return sortDir==='asc'?va-vb:vb-va;
+});
 var tbody=document.getElementById('provinceBody');
 tbody.innerHTML=drows.map(function(r,i){
 var rankCls=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-other';
@@ -1087,6 +1113,12 @@ var sfPct=r.total>0?(r.sanfang/r.total*100):0;
 var profPct=0;
 return '<tr class="'+rankCls+'"><td>'+(i+1)+'</td><td class="prov-name">'+r.prov+'</td><td class="num">'+r.total.toFixed(2)+'</td><td class="num">'+r.huafei.toFixed(2)+'</td><td class="num">'+r.ziyou.toFixed(2)+'</td><td class="num">'+r.sanfang.toFixed(2)+'</td><td class="num">'+(r.prof>0?r.prof.toFixed(2):'-')+'</td><td>'+formatYoyChain(r.yoyVal,r.chainVal)+'</td></tr>';
 }).join('');
+document.querySelectorAll('th.sortable').forEach(function(th){
+th.classList.remove('sorted-asc','sorted-desc');
+if(th.dataset.sort===sortKey){
+th.classList.add(sortDir==='asc'?'sorted-asc':'sorted-desc');
+}
+});
 return;
 }
 months=[sel.dateStr.substring(0,7)];
@@ -1141,6 +1173,8 @@ rows.sort((a,b)=>{
 let va=a[sortKey], vb=b[sortKey];
 if(sortKey==='prov'){va=a.prov;vb=b.prov;}
 if(typeof va==='string') return sortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+if(va==null) va=-Infinity;
+if(vb==null) vb=-Infinity;
 return sortDir==='asc'?va-vb:vb-va;
 });
 
