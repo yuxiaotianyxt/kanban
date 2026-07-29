@@ -81,10 +81,7 @@
 window.__errors=[];
 window.addEventListener('error',function(e){
   window.__errors.push({msg:e.message,line:e.lineno,col:e.colno,file:e.filename});
-  var el=document.getElementById('bizStructBody');
-  if(el&&window.__errors.length<=3){
-    el.innerHTML='<tr><td colspan="5" style="color:#ef4444;padding:12px">JS错误#'+window.__errors.length+': '+e.message+' (行:'+e.lineno+':'+e.colno+')</td></tr>';
-  }
+  console.error('Global error:',e.message,'line:'+e.lineno+':'+e.colno);
 });
 </script>
 <script>
@@ -1065,6 +1062,7 @@ var djy=D.daily_jy_data||{};
 var hasDaily=false;
 for(var p in djy){if(djy[p]&&djy[p][sel.dateStr]){hasDaily=true;break;}}
 if(hasDaily){
+var _provList = selectedProvince ? [selectedProvince] : provinceList;
 var drows=_provList.map(function(prov){
 var dd=djy[prov]&&djy[prov][sel.dateStr]?djy[prov][sel.dateStr]:{huafei:0,ziyou:0,sanfang:0,prof:0};
 var total=dd.huafei+dd.ziyou+dd.sanfang+(dd.prof||0);
