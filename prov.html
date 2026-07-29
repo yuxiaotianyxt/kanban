@@ -2690,18 +2690,13 @@ function applyProvinceFilter() {
 }
 
 
-initMonthFilter();
-initProvFilter();
-initSort();
-// Default to day mode with last available date
-if(dailyDates.length>0){
-selectedDate=dailyDates[dailyDates.length-1];
-updateDayDisplay();
-}
-// Hide month-only sections on initial day mode load
-document.querySelectorAll('.month-only').forEach(function(el){el.style.display='none';});
-renderMetrics();
-try{renderBizStruct();}catch(e){document.getElementById('bizStructBody').innerHTML='<tr><td colspan="5" class="no-data">renderBizStruct error: '+e.message+'</td></tr>';}
+var _dbg=[];
+function _dbgLog(msg){_dbg.push(msg);try{var el=document.getElementById('bizStructBody');if(el)el.innerHTML='<tr><td colspan="5" style="color:#fbbf24;padding:12px">'+_dbg.join(' | ')+'</td></tr>';}catch(e){}}
+try{_dbgLog('init-start');initMonthFilter();_dbgLog('monthFilter-ok');initProvFilter();_dbgLog('provFilter-ok');initSort();_dbgLog('sort-ok');}catch(e){_dbgLog('INIT-ERROR:'+e.message);}
+try{if(dailyDates.length>0){selectedDate=dailyDates[dailyDates.length-1];updateDayDisplay();}_dbgLog('dayDisplay-ok');}catch(e){_dbgLog('DAY-ERROR:'+e.message);}
+try{document.querySelectorAll('.month-only').forEach(function(el){el.style.display='none';});_dbgLog('hide-ok');}catch(e){_dbgLog('HIDE-ERROR:'+e.message);}
+try{renderMetrics();_dbgLog('metrics-ok');}catch(e){_dbgLog('METRICS-ERROR:'+e.message);}
+try{renderBizStruct();_dbgLog('bizStruct-ok');}catch(e){_dbgLog('BIZSTRUCT-ERROR:'+e.message+' STACK:'+(e.stack||'').substring(0,300));}
 requestAnimationFrame(function(){
 renderDailyTrend();
 requestAnimationFrame(function(){
