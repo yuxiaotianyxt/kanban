@@ -1137,7 +1137,8 @@ if(months.length===0){document.getElementById('provinceBody').innerHTML='<tr><td
 const prevMonths = getPrevYearMonths(months);
 const chainMonths = getPrevPeriodMonths(months);
 
-const rows = provinceList.map(prov=>{
+var _provList = selectedProvince ? [selectedProvince] : provinceList;
+const rows = _provList.map(prov=>{
 const pd = D.jy_data[prov];
 if(!pd) return {prov,total:0,huafei:0,ziyou:0,sanfang:0,yoy:null,yoyVal:null,chain:null,chainVal:null};
 let agg = {total:0,huafei:0,ziyou:0,sanfang:0,prof:0};
